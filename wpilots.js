@@ -890,6 +890,10 @@ function start_gameserver(maps, options, shared) {
   var bot = world.add_player(0, "Computer");
     world.set_player_ready(bot.id);	
 
+	world.on_player_spawn = function(bot, pos) {
+    broadcast(OP_PLAYER_SPAWN, bot.id, pos);
+  }
+
   return server;
 }
 

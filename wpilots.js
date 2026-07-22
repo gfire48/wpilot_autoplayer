@@ -887,6 +887,9 @@ function start_gameserver(maps, options, shared) {
     // server.listen(parseInt(options.ws_port), options.host);
   });
 
+  var bot = world.add_player(0, "Computer");
+    world.set_player_ready(bot.id);	
+
   return server;
 }
 

@@ -176,7 +176,7 @@ function main() {
 
   console.log('WPilot server ' + SERVER_VERSION);
 
-  maps = options.map;
+  maps = options.maps;
 
   if (options.http_port != 0) {
     webserver = start_webserver(options, shared);

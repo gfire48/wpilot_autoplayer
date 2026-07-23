@@ -898,6 +898,9 @@ function start_gameserver(maps, options, shared) {
   });
 
   load_map(null, true, function(err) {
+    if (err) {
+      console.error(err + '; using the built-in default map.');
+    }
     console.log('Starting Game Server server at ' + shared.get_state().game_server_url);
     // server.listen(parseInt(options.ws_port), options.host);
   });

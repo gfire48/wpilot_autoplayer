@@ -13,7 +13,8 @@ var path      = require('path'),
     ws        = require('ws'),
     optparse  = require('./lib/optparse'),
     match     = require('./lib/match').Match,
-    go        = require('./lib/gameobjects');
+    go        = require('./lib/gameobjects'),
+    bots      = require('./lib/bot');
     
 
 var WebSocketServer = ws.Server;
@@ -70,6 +71,7 @@ const SWITCHES = [
   ['--max_rate NUMBER',           'The maximum rate per client and second (default: 1000)'],
   ['--max_connections NUMBER',    'Max connections, including players (default: 60)'],
   ['--max_players NUMBER',        'Max connected players allowed in server simultaneously (default: 8)'],
+  ['--bots NUMBER',               'Number of computer opponents to add (default: 1)'],
   ['--r_ready_ratio NUMBER',      'Rule: Player ready ratio before a round start. (Default: 0.6)'],
   ['--r_respawn_time NUMBER',     'Rule: Player respawn time after death. (Default: 500)'],
   ['--r_reload_time NUMBER',      'Rule: The reload time after fire. (Default: 15)'],
@@ -100,6 +102,7 @@ const DEFAULT_OPTIONS = {
   pub_ws_port:          null,
   max_connections:      60,
   max_players:          8,
+  bots:                 1,
   max_rate:             5000,
   r_ready_ratio:        0.6,
   r_respawn_time:       400,
@@ -173,7 +176,7 @@ function main() {
 
   console.log('WPilot server ' + SERVER_VERSION);
 
-  maps = options.maps;
+  maps = options.map;
 
   if (options.http_port != 0) {
     webserver = start_webserver(options, shared);
@@ -221,6 +224,7 @@ function start_gameserver(maps, options, shared) {
    *  @return {undefined} Nothing
    */
   function gameloop_tick(t, dt) {
+    bots.updateBots(world);
     world.update(t, dt);
     check_rules(t, dt);
     post_update();
@@ -303,12 +307,23 @@ function start_gameserver(maps, options, shared) {
 
     // Reset game world
     world.build(world.map_data, world.rules);
+    add_bots();
 
     gameloop = new GameLoop();
     gameloop.ontick = gameloop_tick;
 
     log('Starting game loop...');
     gameloop.start();
+  }
+
+  function add_bots() {
+    var count = Math.max(0, parseInt(options.bots, 10) || 0);
+    for (var index = 0; index < count; index++) {
+      var player = world.add_player(-(index + 1), 'Computer ' + (index + 1));
+      player.bot = true;
+      world.set_player_ready(player.id);
+      world.spawn_player(player.id);
+    }
   }
 
   /**
@@ -357,7 +372,7 @@ function start_gameserver(maps, options, shared) {
         }
         if (update_tick % 200 == 0) {
           var player_connection = connection_for_player(player);
-          connection.queue([OP_PLAYER_INFO, player.id, player_connection.ping]);
+          connection.queue([OP_PLAYER_INFO, player.id, player_connection ? player_connection.ping : 0]);
         }
 
       }
@@ -886,13 +901,6 @@ function start_gameserver(maps, options, shared) {
     console.log('Starting Game Server server at ' + shared.get_state().game_server_url);
     // server.listen(parseInt(options.ws_port), options.host);
   });
-
-  var bot = world.add_player(0, "Computer");
-    world.set_player_ready(bot.id);	
-
-	world.on_player_spawn = function(bot, pos) {
-    broadcast(OP_PLAYER_SPAWN, bot.id, pos);
-  }
 
   return server;
 }

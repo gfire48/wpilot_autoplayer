@@ -4,7 +4,7 @@
   "description": "A proof-of-concept multiplayer game in the Browser",
   "version": "1.0.0",
   "dependencies": {
-    "ws": "~0.4.22"
+    "ws": "^8.21.1"
   },
   "engines": {
     "node": ">=0.7.7"

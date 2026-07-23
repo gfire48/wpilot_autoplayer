@@ -15,6 +15,9 @@ Quick start
 You can start the game- and client server by typing:
 
 	./wpilots.js
+
+The server adds one computer opponent by default. Use `--bots NUMBER` to
+change the count, or `--bots 0` to run without computer opponents.
 		
 For more more switched, start the server with the '-H' 
 
